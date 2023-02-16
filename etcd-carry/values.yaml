@@ -1,0 +1,70 @@
+# Default values for etcd-carry.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: xakdwch5/etcd-carry
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+terminationGracePeriodSeconds: 10
+
+endpoints:
+  master: ~
+  slave: ~
+
+env:
+  ETCDCTL_API: "3"
+
+volumesPaths:
+  auth:
+    slave:
+      cacert: /etc/kubernetes/pki/etcd/ca.crt
+      cert: /etc/kubernetes/pki/etcd/server.crt
+      key: /etc/kubernetes/pki/etcd/server.key
+  encryption:
+    slave:
+      path: /etc/kubernetes/pki/secrets-encryption.yaml
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1000Mi
+  requests:
+    cpu: 200m
+    memory: 128Mi
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/etcd
+              operator: Exists
+
+configmap:
+  master_etcd_auth:
+    name: master-etcd-auth
+    master_etcd_cacert: |-
+    master_etcd_cert: |-
+    master_etcd_key: |-
+    # 请勿编辑一下子etcd的值
+    #     master_etcd_cacert_default: |-
+    #         master_etcd_cert_default: |-
+    #             master_etcd_key_default: |-
+    #               mirror_rules:
+    #                   name: mirror-rules
+    #
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
