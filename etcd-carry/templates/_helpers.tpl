@@ -60,3 +60,27 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Return the existing etcd PKI Secret name (if it exists)
+otherwise fail
+*/}}
+{{- define "etcd-carry.pki" -}}
+{{- if .Values.existingPkiSecret }}
+{{- printf "%s" (tpl .Values.existingPkiSecret $) }}
+{{- else }}
+{{- fail "etcd PKI secret should be created in advance"}}
+{{- end }}
+{{- end }}
+
+{{/*
+Return the existing confimap (if it exists)
+otherwise return the default
+*/}}
+{{- define "etcd-carry.config" -}}
+{{- if .Values.existingConfigmap }}
+{{- printf "%s" (tpl .Values.existingConfigmap $) }}
+{{- else }}
+{{- include "etcd-carry.name" . }}
+{{- end }}
+{{- end }}

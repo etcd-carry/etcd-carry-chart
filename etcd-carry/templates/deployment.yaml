@@ -2,12 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "etcd-carry.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "etcd-carry.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "etcd-carry.selectorLabels" . | nindent 6 }}
@@ -24,38 +23,72 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "etcd-carry.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
+          command:
+            - /etcd-carry
+          args:
+            - --source-cacert=/etc/etcd-carry/etcd/source/ca.crt
+            - --source-cert=/etc/etcd-carry/etcd/source/server.crt
+            - --source-key=/etc/etcd-carry/etcd/source/server.key
+            - --source-endpoints={{ .Values.endpoints.source }}
+            - --dest-cacert=/etc/etcd-carry/etcd/dest/ca.crt
+            - --dest-cert=/etc/etcd-carry/etcd/dest/server.crt
+            - --dest-key=/etc/etcd-carry/etcd/dest/server.key
+            - --dest-endpoints={{ .Values.endpoints.dest }}
+            - --encryption-provider-config=/etc/etcd-carry/kube/secrets-encryption.yaml
+            - --mirror-rule=/etc/etcd-carry/rules.yaml
+          env:
+            - name: ETCDCTL_API
+              value: {{ .Values.env.ETCDCTL_API | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+          volumeMounts:
+            - name: pki
+              mountPath: /etc/etcd-carry/etcd/source/ca.crt
+              subPath: source-ca.crt
+            - name: pki
+              mountPath: /etc/etcd-carry/etcd/source/server.crt
+              subPath: source-server.crt
+            - name: pki
+              mountPath: /etc/etcd-carry/etcd/source/server.key
+              subPath: source-server.key
+            - name: pki
+              mountPath: /etc/etcd-carry/etcd/dest/ca.crt
+              subPath: dest-ca.crt
+            - name: pki
+              mountPath: /etc/etcd-carry/etcd/dest/server.crt
+              subPath: dest-server.crt
+            - name: pki
+              mountPath: /etc/etcd-carry/etcd/dest/server.key
+              subPath: dest-server.key
+            - name: config
+              mountPath: /etc/etcd-carry/kube/secrets-encryption.yaml
+              subPath: secrets-encryption.yaml
+            - name: config
+              mountPath: /etc/etcd-carry/rules.yaml
+              subPath: rules.yaml
+            - mountPath: /etc/localtime
+              name: lt-config
+            - mountPath: /etc/timezone
+              name: tz-config
       {{- with .Values.affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
+        {{ toYaml . | indent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: pki
+          secret:
+            secretName: {{ include "etcd-carry.pki" . }}
+        - name: config
+          configMap:
+            name: {{ include "etcd-carry.config" . }}
+        - name: lt-config
+          hostPath:
+            path: /etc/localtime
+        - name: tz-config
+          hostPath:
+            path: /etc/timezone

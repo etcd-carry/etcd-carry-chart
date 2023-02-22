@@ -8,60 +8,34 @@ image:
   repository: xakdwch5/etcd-carry
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: latest
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-terminationGracePeriodSeconds: 10
+# Etcd PKI secret should be created in advance
+#existingPkiSecret: example-secret-1-dhm6mtm2cf
+existingPkiSecret: ~
+
+# mirror rules and encryptionProviderConfig should be created in advance
+existingConfigmap: ~
 
 endpoints:
-  master: ~
-  slave: ~
+  source: 10.20.144.29:2379
+  dest: 192.168.48.220:2379
 
 env:
   ETCDCTL_API: "3"
 
-volumesPaths:
-  auth:
-    slave:
-      cacert: /etc/kubernetes/pki/etcd/ca.crt
-      cert: /etc/kubernetes/pki/etcd/server.crt
-      key: /etc/kubernetes/pki/etcd/server.key
-  encryption:
-    slave:
-      path: /etc/kubernetes/pki/secrets-encryption.yaml
+resources: {}
+  #limits:
+  #  cpu: 1000m
+  #  memory: 1000Mi
+  #requests:
+  #  cpu: 200m
+  #  memory: 128Mi
 
-resources:
-  limits:
-    cpu: 1000m
-    memory: 1000Mi
-  requests:
-    cpu: 200m
-    memory: 128Mi
-
-affinity:
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-        - matchExpressions:
-            - key: node-role.kubernetes.io/etcd
-              operator: Exists
-
-configmap:
-  master_etcd_auth:
-    name: master-etcd-auth
-    master_etcd_cacert: |-
-    master_etcd_cert: |-
-    master_etcd_key: |-
-    # 请勿编辑一下子etcd的值
-    #     master_etcd_cacert_default: |-
-    #         master_etcd_cert_default: |-
-    #             master_etcd_key_default: |-
-    #               mirror_rules:
-    #                   name: mirror-rules
-    #
 
 nodeSelector: {}
 
