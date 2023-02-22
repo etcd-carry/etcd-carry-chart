@@ -15,15 +15,14 @@ nameOverride: ""
 fullnameOverride: ""
 
 # Etcd PKI secret should be created in advance
-#existingPkiSecret: example-secret-1-dhm6mtm2cf
 existingPkiSecret: ~
 
 # mirror rules and encryptionProviderConfig should be created in advance
 existingConfigmap: ~
 
 endpoints:
-  source: 10.20.144.29:2379
-  dest: 192.168.48.220:2379
+  source: ~
+  dest: ~
 
 env:
   ETCDCTL_API: "3"
