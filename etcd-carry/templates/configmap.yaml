@@ -1,0 +1,14 @@
+{{- if not .Values.existingConfigmap }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    {{- include "etcd-carry.labels" . | nindent 4 }}
+  name: {{ include "etcd-carry.config" . }}
+  namespace: {{ .Release.Namespace }}
+data:
+{{- range $path, $pp := .Files.Glob "configs/**.yaml" }}
+  {{ base $path }}: |
+{{ $.Files.Get $path | indent 4 }}
+{{- end }}
+{{- end }}
