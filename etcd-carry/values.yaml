@@ -14,8 +14,8 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-# Etcd PKI secret should be created in advance
-existingPkiSecret: ~
+# Etcd PKI configmap should be created in advance
+existingPkiConfigmap: ~
 
 # mirror rules and encryptionProviderConfig should be created in advance
 existingConfigmap: ~

@@ -62,14 +62,14 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-Return the existing etcd PKI Secret name (if it exists)
+Return the existing etcd PKI Configmap name (if it exists)
 otherwise fail
 */}}
 {{- define "etcd-carry.pki" -}}
-{{- if .Values.existingPkiSecret }}
-{{- printf "%s" (tpl .Values.existingPkiSecret $) }}
+{{- if .Values.existingPkiConfigmap }}
+{{- printf "%s" (tpl .Values.existingPkiConfigmap $) }}
 {{- else }}
-{{- fail "etcd PKI secret should be created in advance"}}
+{{- fail "etcd PKI configmap should be created in advance"}}
 {{- end }}
 {{- end }}
 

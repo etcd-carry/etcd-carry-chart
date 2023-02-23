@@ -81,8 +81,8 @@ spec:
       terminationGracePeriodSeconds: 10
       volumes:
         - name: pki
-          secret:
-            secretName: {{ include "etcd-carry.pki" . }}
+          configMap:
+            name: {{ include "etcd-carry.pki" . }}
         - name: config
           configMap:
             name: {{ include "etcd-carry.config" . }}
